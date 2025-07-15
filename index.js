@@ -23,15 +23,13 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+
+    //users
     const userCollection = client.db("BrandBoostieDB").collection('users');
 
     app.get('/users/:email', async(req, res)=>{
       const query = {email: req.params.email};
-      //console.log(query);
-      
       const user = await userCollection.findOne(query);
-      // console.log(user);
-      
       if (user) {
           res.status(200).send(user)
       } else{
@@ -40,8 +38,9 @@ async function run() {
     })
 
     app.post('/users', async(req, res)=> {
-      const result = await userCollection.insertOne(req.body);
-      //console.log(result);
+      const user = req.body;
+      user.role = "user";
+      const result = await userCollection.insertOne(user);
       res.send(result);
     })
 
@@ -57,6 +56,23 @@ async function run() {
       
       res.send(result);
     })
+
+
+    //blogs
+    const blogCollection = client.db("BrandBoostieDB").collection("blogs");
+
+    app.post('/blogs', async (req, res) => {
+      const blog = req.body;
+      const user = await userCollection.findOne({ email : blog.email });
+
+      if (!user || user.role !== 'admin') {
+        return res.status(403).send({ message: 'Forbidden' });
+      }
+
+      const result = await blogCollection.insertOne(blog);
+      res.send(result);
+    });
+
 
 
     // Send a ping to confirm a successful connection
