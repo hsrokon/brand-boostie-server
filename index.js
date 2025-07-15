@@ -27,27 +27,34 @@ async function run() {
 
     app.get('/users/:email', async(req, res)=>{
       const query = {email: req.params.email};
+      //console.log(query);
+      
       const user = await userCollection.findOne(query);
+      // console.log(user);
+      
       if (user) {
           res.status(200).send(user)
       } else{
-        res.status(400).send({message: 'User not found'})
+        res.status(404).send({message: 'User not found'})
       }
     })
 
     app.post('/users', async(req, res)=> {
       const result = await userCollection.insertOne(req.body);
+      //console.log(result);
       res.send(result);
     })
 
     app.patch('/users', async(req, res)=> {
       const query = {email : req.body.email};
+      //console.log(query);
       const updateField = {
         $set: {
           lastLoggedIn : req.body.lastLoggedIn
         }
       }
       const result = await userCollection.updateOne(query, updateField);
+      
       res.send(result);
     })
 
