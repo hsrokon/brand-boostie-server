@@ -21,13 +21,43 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+
+    const userCollection = client.db("BrandBoostieDB").collection('users');
+
+    app.get('/users/:email', async(req, res)=>{
+      const query = {email: req.params.email};
+      const user = await userCollection.findOne(query);
+      if (user) {
+          res.status(200).send(user)
+      } else{
+        res.status(400).send({message: 'User not found'})
+      }
+    })
+
+    app.post('/users', async(req, res)=> {
+      const result = await userCollection.insertOne(req.body);
+      res.send(result);
+    })
+
+    app.patch('/users', async(req, res)=> {
+      const query = {email : req.body.email};
+      const updateField = {
+        $set: {
+          lastLoggedIn : req.body.lastLoggedIn
+        }
+      }
+      const result = await userCollection.updateOne(query, updateField);
+      res.send(result);
+    })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    //await client.close();
   }
 }
 run().catch(console.dir);
