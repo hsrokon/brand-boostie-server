@@ -63,6 +63,7 @@ async function run() {
 
     app.post('/blogs', async (req, res) => {
       const blog = req.body;
+      blog.createdAt = new Date();
       const user = await userCollection.findOne({ email : blog.email });
 
       if (!user || user.role !== 'admin') {
@@ -73,6 +74,10 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/blogs', async(req, res)=> {
+      const result = await blogCollection.find().toArray();
+      res.send(result);
+    })
 
 
     // Send a ping to confirm a successful connection
