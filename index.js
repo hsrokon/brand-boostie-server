@@ -86,6 +86,36 @@ async function run() {
       res.send(result);
     })
 
+    //case study
+    const caseStudyCollection = client.db("BrandBoostieDB").collection("caseStudies");
+
+    app.post('/caseStudies', async (req, res) => {
+      const caseStudy = req.body;
+
+      const user = await userCollection.findOne({ email: caseStudy.email });
+      if (!user || user.role !== 'admin') {
+        return res.status(403).send({ message: "Forbidden" });
+      }
+
+      caseStudy.createdAt = new Date();
+
+      const result = await caseStudyCollection.insertOne(caseStudy);
+      res.send(result);
+    });
+
+
+    app.get('/caseStudies', async(req, res)=> {
+      const result = await caseStudyCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.get('/caseStudies/:id', async(req, res)=> {
+      const id = req.params.id;
+      const filter = { _id : new ObjectId(id)};
+      const result = await caseStudyCollection.findOne(filter);
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
