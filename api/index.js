@@ -88,6 +88,8 @@ async function run() {
     })
 
     
+
+
     //case study
     const caseStudyCollection = client.db("BrandBoostieDB").collection("caseStudies");
 
@@ -116,6 +118,8 @@ async function run() {
       const result = await caseStudyCollection.findOne(filter);
       res.send(result);
     })
+
+
 
 
     //payment claims
@@ -173,6 +177,8 @@ async function run() {
     });
 
 
+
+
     //subscribers
     const subscriberCollection = client.db("BrandBoostieDB").collection("subscribers");
 
@@ -217,22 +223,24 @@ async function run() {
     });
 
 
+
+
     //pricing section
     const pricingCollection = client.db("BrandBoostieDB").collection("pricingPlans");
-    // 📥 Get all pricing plans
+    // Get all pricing plans
     app.get('/pricingPlans', async (req, res) => {
       const result = await pricingCollection.find().toArray();
       res.send(result);
     });
 
-    // ➕ Add a new plan (admin only)
+    // Add a new plan (admin only)
     app.post('/pricingPlans', async (req, res) => {
       const plan = req.body;
       const result = await pricingCollection.insertOne(plan);
       res.send(result);
     });
 
-    // ✏️ Update an existing plan
+    // Update an existing plan
     app.patch('/pricingPlans/:id', async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
@@ -244,10 +252,52 @@ async function run() {
       res.send(result);
     });
 
-    // 🗑️ Delete a plan
+    // Delete a plan
     app.delete('/pricingPlans/:id', async (req, res) => {
       const id = req.params.id;
       const result = await pricingCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+
+
+
+    
+    //pricing cards
+    const pricingCardCollection = client.db("BrandBoostieDB").collection("pricingCards");
+
+    app.get('/pricingCards', async (req, res) => {
+      const result = await pricingCardCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/pricingCards', async (req, res) => {
+      const plan = req.body;
+
+      const user = await userCollection.findOne({ email: plan.email });
+      if (!user || user.role !== 'admin') {
+        return res.status(403).send({ message: "Forbidden" });
+      }
+
+      delete plan.email; // Clean up email after role check
+      const result = await pricingCardCollection.insertOne(plan);
+      res.send(result);
+    });
+
+    app.patch('/pricingCards/:id', async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+
+      const result = await pricingCardCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.send(result);
+    });
+
+    app.delete('/pricingCards/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await pricingCardCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
