@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const serverless = require("serverless-http");
 const app = express();
 const port = process.env.PORT || 5000;
 app.use(cors());
@@ -86,6 +87,7 @@ async function run() {
       res.send(result);
     })
 
+    
     //case study
     const caseStudyCollection = client.db("BrandBoostieDB").collection("caseStudies");
 
@@ -103,7 +105,6 @@ async function run() {
       res.send(result);
     });
 
-
     app.get('/caseStudies', async(req, res)=> {
       const result = await caseStudyCollection.find().toArray();
       res.send(result);
@@ -115,6 +116,50 @@ async function run() {
       const result = await caseStudyCollection.findOne(filter);
       res.send(result);
     })
+
+
+    //payment claims
+    const paymentClaimCollection = client.db('BrandBoostieDB').collection('paymentClaims');
+
+    // Save claim
+    app.post("/paymentClaims", async (req, res) => {
+      const newClaim = req.body;
+      newClaim.status = "Received";
+      newClaim.isVerified= false;
+      const result = await paymentClaimCollection.insertOne(newClaim);
+      res.send(result);
+    });
+
+    // Update claim status
+    app.patch("/paymentClaims/:id/status", async (req, res) => {
+      const id = req.params.id;
+      const { status } = req.body;
+
+      const filter = { _id: new ObjectId(id) };
+      const update = { $set: { status } };
+
+      const result = await paymentClaimCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
+    // Verify claim
+    app.patch("/paymentClaims/:id/verify", async (req, res) => {
+      const id = req.params.id;
+
+      const filter = { _id: new ObjectId(id) };
+      const update = { $set: { isVerified: true } };
+
+      const result = await paymentClaimCollection.updateOne(filter, update);
+      res.send(result);
+    });
+
+    // Get claims for specific user by email
+    app.get("/paymentClaims", async (req, res) => {
+      const email = req.query.email;
+      const query = email ? { email } : {};
+      const result = await paymentClaimCollection.find(query).toArray();
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
@@ -132,6 +177,5 @@ app.get('/', async(req, res)=> {
     res.send("Hi I'm brandboostie's server");
 })
 
-app.listen(port, ()=> {
-    console.log(`Server running on port ${port}`);
-})
+module.exports = app;
+module.exports.handler = serverless(app);
