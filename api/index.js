@@ -161,6 +161,32 @@ async function run() {
       res.send(result);
     });
 
+    //subscribers
+    const subscriberCollection = client.db("BrandBoostieDB").collection("subscribers");
+
+    app.post("/subscribers", async (req, res) => {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).send({ message: "Email is required" });
+      }
+
+      // Prevent duplicate entries
+      const alreadyExists = await subscriberCollection.findOne({ email });
+      if (alreadyExists) {
+        return res.status(409).send({ message: "Already subscribed" });
+      }
+
+      const result = await subscriberCollection.insertOne({ email, subscribedAt: new Date() });
+      res.send(result);
+    });
+
+    app.get("/subscribers", async (req, res) => {
+      const subscribers = await subscriberCollection.find().toArray();
+      res.send(subscribers);
+    });
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
