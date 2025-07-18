@@ -156,10 +156,22 @@ async function run() {
     // Get claims for specific user by email
     app.get("/paymentClaims", async (req, res) => {
       const email = req.query.email;
-      const query = email ? { email } : {};
+      const statusNot = req.query.statusNot;
+
+      const query = {};
+
+      if (email) {
+        query.email = email;
+      }
+
+      if (statusNot) {
+        query.status = { $ne: statusNot };
+      }
+
       const result = await paymentClaimCollection.find(query).toArray();
       res.send(result);
     });
+
 
     //subscribers
     const subscriberCollection = client.db("BrandBoostieDB").collection("subscribers");
@@ -186,6 +198,23 @@ async function run() {
       res.send(subscribers);
     });
 
+
+    // testimonials
+    const testimonialCollection = client.db("BrandBoostieDB").collection("testimonials");
+    // GET all testimonials
+    app.get("/testimonials", async (req, res) => {
+      const data = await testimonialCollection.find().toArray();
+      res.send(data);
+    });
+
+    // POST a new testimonial
+    app.post("/testimonials", async (req, res) => {
+      const { name, photo, message, role } = req.body;
+      if (!name || !photo || !message || !role) return res.status(400).send("Missing fields");
+
+      const result = await testimonialCollection.insertOne({ name, photo, message, role });
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
