@@ -179,6 +179,15 @@ async function run() {
     });
 
 
+    // Delete a claim
+    app.delete("/paymentClaims/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await paymentClaimCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
+
+
 
 
     //subscribers
@@ -275,7 +284,6 @@ async function run() {
       const result = await pricingCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
-
 
 
 
