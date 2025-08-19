@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.gvjpk31.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+//developer db
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.aczhr3x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 // mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.gvjpk31.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
@@ -127,7 +128,7 @@ async function run() {
     //payment claims
     const paymentClaimCollection = client.db('BrandBoostieDB').collection('paymentClaims');
 
-    // Save claim
+    // saving claim
     app.post("/paymentClaims", async (req, res) => {
       const newClaim = req.body;
       newClaim.status = "Received";
@@ -136,7 +137,7 @@ async function run() {
       res.send(result);
     });
 
-    // Update claim status
+    // update claim status
     app.patch("/paymentClaims/:id/status", async (req, res) => {
       const id = req.params.id;
       const { status } = req.body;
@@ -148,7 +149,7 @@ async function run() {
       res.send(result);
     });
 
-    // Verify claim
+    // verify claim
     app.patch("/paymentClaims/:id/verify", async (req, res) => {
       const id = req.params.id;
 
@@ -159,7 +160,7 @@ async function run() {
       res.send(result);
     });
 
-    // Get claims for specific user by email
+    // get claims for specific user by email
     app.get("/paymentClaims", async (req, res) => {
       const email = req.query.email;
       const statusNot = req.query.statusNot;
@@ -179,7 +180,7 @@ async function run() {
     });
 
 
-    // Delete a claim
+    // delete a claim
     app.delete("/paymentClaims/:id", async (req, res) => {
       const id = req.params.id;
       const result = await paymentClaimCollection.deleteOne({ _id: new ObjectId(id) });
@@ -200,7 +201,7 @@ async function run() {
         return res.status(400).send({ message: "Email is required" });
       }
 
-      // Prevent duplicate entries
+      // preventing duplicate entries
       const alreadyExists = await subscriberCollection.findOne({ email });
       if (alreadyExists) {
         return res.status(409).send({ message: "Already subscribed" });
@@ -218,13 +219,13 @@ async function run() {
 
     // testimonials
     const testimonialCollection = client.db("BrandBoostieDB").collection("testimonials");
-    // GET all testimonials
+    // get all testimonials
     app.get("/testimonials", async (req, res) => {
       const data = await testimonialCollection.find().toArray();
       res.send(data);
     });
 
-    // POST a new testimonial
+    // post a new testimonial
     app.post("/testimonials", async (req, res) => {
       const { name, photo, message, role, email } = req.body;
 
@@ -232,7 +233,7 @@ async function run() {
         return res.status(400).send("Missing fields");
       }
 
-      // Check if this user has a COMPLETED payment claim
+      // check if this user has a COMPLETED payment claim
       const completedService = await paymentClaimCollection.findOne({
         email,
         status: "Completed",
@@ -253,20 +254,20 @@ async function run() {
 
     //pricing section
     const pricingCollection = client.db("BrandBoostieDB").collection("pricingPlans");
-    // Get all pricing plans
+    // get all pricing plans
     app.get('/pricingPlans', async (req, res) => {
       const result = await pricingCollection.find().toArray();
       res.send(result);
     });
 
-    // Add a new plan (admin only)
+    // adding a new plan (admin only)
     app.post('/pricingPlans', async (req, res) => {
       const plan = req.body;
       const result = await pricingCollection.insertOne(plan);
       res.send(result);
     });
 
-    // Update an existing plan
+    // updating an existing plan
     app.patch('/pricingPlans/:id', async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
@@ -278,7 +279,7 @@ async function run() {
       res.send(result);
     });
 
-    // Delete a plan
+    // delete a plan
     app.delete('/pricingPlans/:id', async (req, res) => {
       const id = req.params.id;
       const result = await pricingCollection.deleteOne({ _id: new ObjectId(id) });
@@ -304,7 +305,7 @@ async function run() {
         return res.status(403).send({ message: "Forbidden" });
       }
 
-      delete plan.email; // Clean up email after role check
+      delete plan.email; // clean up email after role check
       const result = await pricingCardCollection.insertOne(plan);
       res.send(result);
     });
@@ -332,11 +333,11 @@ async function run() {
     // vouchers collection
     const voucherCollection = client.db("BrandBoostieDB").collection("vouchers");
 
-    // Add a new voucher (Admin)
+    // add a new voucher -admin
     app.post('/vouchers', async (req, res) => {
       const voucher = req.body;
 
-      // Basic validation
+      // basic validation
       if (!voucher.code || !voucher.discountPercentage || !voucher.usageLimit) {
         return res.status(400).send({ message: "Missing voucher code, discount, or usage limit" });
       }
@@ -346,7 +347,7 @@ async function run() {
         return res.status(409).send({ message: "Voucher code already exists" });
       }
 
-      // Prepare voucher structure
+      // prepare voucher structure
       const newVoucher = {
         code: voucher.code.trim(),
         discountPercentage: parseInt(voucher.discountPercentage),
@@ -362,13 +363,13 @@ async function run() {
       res.send(result);
     });
 
-    // Get all vouchers (Admin)
+    // get all vouchers - admin
     app.get('/vouchers', async (req, res) => {
       const vouchers = await voucherCollection.find().toArray();
       res.send(vouchers);
     });
 
-    // Delete a voucher by ID (Admin)
+    // delete a voucher by ID - admin
     app.delete('/vouchers/:id', async (req, res) => {
       const id = req.params.id;
       const result = await voucherCollection.deleteOne({ _id: new ObjectId(id) });
@@ -389,7 +390,7 @@ async function run() {
         return res.status(400).send({ valid: false, message: "Voucher expired or limit exceeded" });
       }
 
-      // Check min/max if provided
+      // check min/max if provided
       const price = parseFloat(amount || 0);
       if (voucher.minAmount && price < voucher.minAmount) {
         return res.status(400).send({ valid: false, message: `Minimum amount for voucher is ৳${voucher.minAmount}` });
@@ -398,7 +399,7 @@ async function run() {
         return res.status(400).send({ valid: false, message: `Maximum amount for voucher is ৳${voucher.maxAmount}` });
       }
 
-      // Send discount but don't update `usedCount` yet (that should happen after payment)
+      // send discount but not update `usedCount` yet (that will happen after payment)
       return res.send({
         valid: true,
         discount: voucher.discountPercentage,
@@ -411,7 +412,7 @@ async function run() {
       const id = req.params.id;
       const update = req.body;
 
-      // Basic validation example (you can expand as needed)
+      // basic validation example
       if (update.code && typeof update.code !== 'string') {
         return res.status(400).send({ message: "Invalid code" });
       }
