@@ -328,7 +328,11 @@ async function run() {
     });
 
 
+    //Stats Manager
+    const statsCollection = client.db("BrandBoostieDB").collection("stats");
 
+    
+  
 
     // vouchers collection
     const voucherCollection = client.db("BrandBoostieDB").collection("vouchers");
